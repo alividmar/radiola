@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radiola – Vodič za GitHub (za začetnike)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --red:#cc2200; --bg:#f5f3ef; --card:#fff; --card2:#edeae4;
+    --border:#d8d3ca; --text:#1a1714; --muted:#7a7269;
+    --live:#1a8c3a; --blue:#2255cc; --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:15px}
+  .header{background:var(--red);color:#fff;padding:28px 40px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .logo{font-family:'DM Serif Display',serif;font-size:2rem}
+  .content{max-width:860px;margin:0 auto;padding:36px 40px 60px}
+  h2{font-family:'DM Serif Display',serif;font-size:1.7rem;margin:48px 0 12px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px}
+  h2:first-of-type{margin-top:0}
+  h3{font-size:1rem;font-weight:600;margin:20px 0 8px;color:var(--text)}
+  p{margin-bottom:10px}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  /* Big steps */
+  .big-step{display:flex;gap:0;margin-bottom:32px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .big-num{background:var(--red);color:#fff;font-family:'DM Serif Display',serif;font-size:2.2rem;min-width:70px;display:flex;align-items:flex-start;justify-content:center;padding:20px 0 0}
+  .big-body{padding:20px 24px;flex:1}
+  .big-title{font-size:1.05rem;font-weight:600;margin-bottom:8px}
+  /* Sub-steps */
+  .substeps{counter-reset:sub;margin:12px 0}
+  .substep{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
+  .substep-num{counter-increment:sub;background:var(--card2);color:var(--text);border:1px solid var(--border);min-width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;margin-top:2px}
+  .substep-num::before{content:counter(sub)}
+  .substep-text{font-size:.91rem;padding-top:2px}
+  /* Code */
+  pre{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:14px 18px;overflow-x:auto;margin:10px 0 4px;font-family:'DM Mono',monospace;font-size:.84rem;line-height:1.6}
+  code{font-family:'DM Mono',monospace;font-size:.84rem;background:var(--card2);padding:1px 6px;border-radius:4px;color:var(--red)}
+  pre code{background:none;color:inherit;padding:0}
+  .c{color:#6c7086} /* comment */
+  .s{color:#a6e3a1} /* string/path */
+  .k{color:#89dceb} /* command */
+  /* Screenshot placeholder */
+  .screen{background:var(--card2);border:2px dashed var(--border);border-radius:8px;padding:16px 20px;margin:12px 0;font-size:.88rem;color:var(--muted);display:flex;align-items:center;gap:10px}
+  .screen::before{content:'🖥';font-size:1.4rem}
+  /* Tip/note */
+  .tip{background:#fff8e6;border:1px solid #e8d08a;border-left:4px solid #c8a000;border-radius:var(--radius);padding:12px 16px;font-size:.88rem;color:#5a4800;margin:12px 0}
+  .note{background:#eef3ff;border:1px solid #b8c8f0;border-left:4px solid var(--blue);border-radius:var(--radius);padding:12px 16px;font-size:.88rem;color:#1a2e6a;margin:12px 0}
+  .success{background:#e8f8ee;border:1px solid #a8dbb8;border-left:4px solid var(--live);border-radius:var(--radius);padding:12px 16px;font-size:.88rem;color:#0a4020;margin:12px 0}
+  kbd{display:inline-block;background:var(--card2);border:1px solid var(--border);border-bottom:3px solid var(--border);border-radius:5px;padding:1px 8px;font-size:.82rem;font-family:'DM Sans',sans-serif;font-weight:600}
+  /* File tree */
+  .tree{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:.84rem;line-height:1.8;margin:10px 0}
+  .tree .folder{color:#89dceb}
+  .tree .file{color:#a6e3a1}
+  .tree .comment{color:#6c7086}
+  /* Progress */
+  .progress{display:flex;gap:0;margin:0 0 32px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+  .prog-item{flex:1;padding:8px 4px;text-align:center;font-size:.75rem;font-weight:500;color:var(--muted);background:var(--card);border-right:1px solid var(--border)}
+  .prog-item:last-child{border-right:none}
+  .prog-item.done{background:#e8f8ee;color:var(--live)}
+  .prog-item.active{background:var(--red);color:#fff}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.88rem}
+  th{text-align:left;padding:8px 12px;background:var(--card2);font-weight:600;border-bottom:2px solid var(--border);font-size:.8rem;text-transform:uppercase;color:var(--muted)}
+  td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  .site-footer{text-align:center;padding:20px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--border);margin-top:20px}
+  @media(max-width:600px){.content{padding:20px 16px 40px}.header{padding:18px 16px}.big-step{flex-direction:column}.big-num{min-width:auto;padding:12px 20px;font-size:1.4rem;flex-direction:row;gap:10px;align-items:center}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">◉ Radiola</div>
+  <div>
+    <div style="font-size:1.1rem;font-weight:600">Vodič za GitHub — od nič do Release</div>
+    <div style="opacity:.7;font-size:.9rem">Za popolne začetnike · Korak za korakom</div>
+  </div>
+</header>
+
+<div class="content">
+
+<!-- PREGLED -->
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:36px">
+  <div style="font-weight:600;font-size:1rem;margin-bottom:12px">Kaj bomo naredili:</div>
+  <div class="progress">
+    <div class="prog-item active">1<br>Git namestitev</div>
+    <div class="prog-item">2<br>GitHub račun</div>
+    <div class="prog-item">3<br>Repozitorij</div>
+    <div class="prog-item">4<br>Naloži kodo</div>
+    <div class="prog-item">5<br>Actions</div>
+    <div class="prog-item">6<br>EXE Release</div>
+  </div>
+  <p style="font-size:.88rem;color:var(--muted);margin:0">Skupni čas: ~20 minut · Brezplačno · Enkrat nastaviti, potem samo 2 ukaza za vsako novo verzijo</p>
+</div>
+
+
+<!-- KORAK 1 -->
+<div class="big-step">
+  <div class="big-num">1</div>
+  <div class="big-body">
+    <div class="big-title">Namesti Git na Linux PC</div>
+    <p>Git je orodje ki sledi spremembam v kodi in jo pošilja na GitHub.</p>
+    <pre><span class="k">sudo apt install git</span>
+
+<span class="c"># Preveri namestitev</span>
+<span class="k">git --version</span>
+<span class="c"># Prikaže: git version 2.x.x  ← OK</span></pre>
+
+    <p>Nastavi svoje ime in email (GitHub bo to prikazal):</p>
+    <pre><span class="k">git config --global user.name  "Tvoje Ime"</span>
+<span class="k">git config --global user.email "tvoj@email.com"</span></pre>
+
+    <div class="tip"><strong>Enkrat za vedno</strong> — te nastavitve se ne ponovijo.</div>
+  </div>
+</div>
+
+
+<!-- KORAK 2 -->
+<div class="big-step">
+  <div class="big-num">2</div>
+  <div class="big-body">
+    <div class="big-title">Ustvari brezplačen GitHub račun</div>
+    <div class="substeps">
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Odpri <a href="https://github.com" target="_blank"><strong>github.com</strong></a> → klikni <strong>Sign up</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Vpiši email, geslo in uporabniško ime (npr. <code>jozef-novak</code>) — to bo del URL-ja tvojega projekta</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Potrdi email naslov (preveri pošto)</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Izberi <strong>Free plan</strong> — za Radiolo je to povsem dovolj</div></div>
+    </div>
+    <div class="success">Brezplačni račun vključuje: neomejene javne repozitorije, 2000 minut GitHub Actions/mesec (za build exe-jev), neomejene Release prenose.</div>
+  </div>
+</div>
+
+
+<!-- KORAK 3 -->
+<div class="big-step">
+  <div class="big-num">3</div>
+  <div class="big-body">
+    <div class="big-title">Ustvari repozitorij na GitHub</div>
+    <div class="substeps">
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Prijavi se na <strong>github.com</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Klikni zeleni gumb <strong>New</strong> (ali <strong>+</strong> v zgornjem desnem kotu → New repository)</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Izpolni obrazec:
+        <table style="margin:8px 0">
+          <tr><th>Polje</th><th>Vrednost</th></tr>
+          <tr><td>Repository name</td><td><code>radiola</code></td></tr>
+          <tr><td>Description</td><td><code>Internet Radio Player za Linux/Windows</code></td></tr>
+          <tr><td>Public / Private</td><td>✅ <strong>Public</strong> (za brezplačen Actions)</td></tr>
+          <tr><td>Add README</td><td>❌ Ne — imamo svojega</td></tr>
+          <tr><td>Add .gitignore</td><td>❌ Ne — imamo svojega</td></tr>
+          <tr><td>License</td><td>❌ Ne — imamo svojega</td></tr>
+        </table>
+      </div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Klikni <strong>Create repository</strong></div></div>
+    </div>
+    <div class="note">Prikaže se prazna stran z navodili — to je normalno. Kodo bomo naložili v naslednjem koraku.</div>
+  </div>
+</div>
+
+
+<!-- KORAK 4 -->
+<div class="big-step">
+  <div class="big-num">4</div>
+  <div class="big-body">
+    <div class="big-title">Pripravi datoteke in naloži na GitHub</div>
+
+    <h3>4a — Pripravi strukturo datotek</h3>
+    <p>Ustvari mapo za projekt in vanjo daj vse datoteke:</p>
+    <pre><span class="c"># Ustvari mapo projekta</span>
+<span class="k">mkdir -p ~/radiola/.github/workflows
+mkdir -p ~/radiola/ICONS
+mkdir -p ~/radiola/docs</span></pre>
+
+    <p>Kopiraj datoteke (prilagodi poti kjer imaš shranjene):</p>
+    <pre><span class="c"># Prilagodi ~/Downloads/Radiola/ na kje imaš datoteke</span>
+<span class="k">cp ~/Downloads/Radiola/radiola.py        ~/radiola/
+cp ~/Downloads/Radiola/radiola.spec       ~/radiola/
+cp ~/Downloads/Radiola/build.py           ~/radiola/
+cp ~/Downloads/Radiola/requirements.txt   ~/radiola/
+cp ~/Downloads/Radiola/README.md          ~/radiola/
+cp ~/Downloads/Radiola/CHANGELOG.md       ~/radiola/
+cp ~/Downloads/Radiola/CHANGELOG.md       ~/radiola/</span>
+
+<span class="c"># .gitignore — preimenuj gitignore.txt → .gitignore</span>
+<span class="k">cp ~/Downloads/Radiola/gitignore.txt      ~/radiola/.gitignore</span>
+
+<span class="c"># LICENSE — preimenuj LICENSE.txt → LICENSE</span>
+<span class="k">cp ~/Downloads/Radiola/LICENSE.txt        ~/radiola/LICENSE</span>
+
+<span class="c"># GitHub Actions workflow</span>
+<span class="k">cp ~/Downloads/Radiola/build.yml          ~/radiola/.github/workflows/build.yml</span>
+
+<span class="c"># Navodila</span>
+<span class="k">cp ~/Downloads/Radiola/radiola_navodila.html  ~/radiola/docs/
+cp ~/Downloads/Radiola/packaging_guide.html   ~/radiola/docs/</span></pre>
+
+    <p>Ustvari <code>.gitkeep</code> v ICONS da mapa ostane v Git:</p>
+    <pre><span class="k">touch ~/radiola/ICONS/.gitkeep</span></pre>
+
+    <h3>Preverjena struktura</h3>
+    <div class="tree">
+<span class="folder">~/radiola/</span>
+├── <span class="folder">.github/</span>
+│   └── <span class="folder">workflows/</span>
+│       └── <span class="file">build.yml</span>         <span class="comment">← GitHub Actions</span>
+├── <span class="folder">docs/</span>
+│   ├── <span class="file">radiola_navodila.html</span>
+│   └── <span class="file">packaging_guide.html</span>
+├── <span class="folder">ICONS/</span>
+│   └── <span class="file">.gitkeep</span>
+├── <span class="file">radiola.py</span>           <span class="comment">← glavni program</span>
+├── <span class="file">radiola.spec</span>         <span class="comment">← PyInstaller config</span>
+├── <span class="file">build.py</span>             <span class="comment">← build skript</span>
+├── <span class="file">requirements.txt</span>
+├── <span class="file">.gitignore</span>           <span class="comment">← brez pike v imenu</span>
+├── <span class="file">LICENSE</span>              <span class="comment">← brez končnice</span>
+├── <span class="file">README.md</span>
+└── <span class="file">CHANGELOG.md</span></div>
+
+    <h3>4b — Poveži z GitHub in naloži</h3>
+    <pre><span class="c"># Pojdi v mapo projekta</span>
+<span class="k">cd ~/radiola</span>
+
+<span class="c"># Inicializiraj Git</span>
+<span class="k">git init</span>
+
+<span class="c"># Poveži z GitHub repozitorijem
+# (zamenjaj "TvojeIme" s tvojim GitHub uporabniškim imenom)</span>
+<span class="k">git remote add origin https://github.com/TvojeIme/radiola.git</span>
+
+<span class="c"># Dodaj vse datoteke</span>
+<span class="k">git add .</span>
+
+<span class="c"># Prikaži kaj bo naloženo (opcijsko preverjanje)</span>
+<span class="k">git status</span>
+
+<span class="c"># Ustvari prvi commit (shrani stanje)</span>
+<span class="k">git commit -m "Radiola v1.4.0 — začetna objava"</span>
+
+<span class="c"># Nastavi glavno vejo in naloži na GitHub</span>
+<span class="k">git branch -M main
+git push -u origin main</span></pre>
+
+    <div class="note">
+      <strong>GitHub te bo vprašal za geslo:</strong> Od 2021 GitHub ne sprejema navadnih gesel — potrebuješ <strong>Personal Access Token</strong>. Glej korak 4c.
+    </div>
+
+    <h3>4c — Personal Access Token (namesto gesla)</h3>
+    <div class="substeps">
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Na GitHub → klikni svojo profilno sliko (zgoraj desno) → <strong>Settings</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Levo spodaj: <strong>Developer settings</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text"><strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong> → <strong>Generate new token (classic)</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Izpolni:
+        <table style="margin:8px 0">
+          <tr><th>Polje</th><th>Vrednost</th></tr>
+          <tr><td>Note</td><td><code>radiola-upload</code></td></tr>
+          <tr><td>Expiration</td><td>90 days ali No expiration</td></tr>
+          <tr><td>Scopes</td><td>✅ <strong>repo</strong> (vse pod repo)</td></tr>
+        </table>
+      </div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Klikni <strong>Generate token</strong> → <strong>TAKOJ kopiraj token</strong> (prikaže se samo enkrat!)</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Ko Git vpraša za geslo → prilepi token namesto gesla</div></div>
+    </div>
+
+    <div class="tip">
+      <strong>Shrani token</strong> v varno mesto (npr. KeePass, Bitwarden). Naslednjič ko boš pushiral, ga bo Linux shranil samodejno.
+    </div>
+
+    <h3>4d — Shrani token da ga ne rabiš vpisovati vsakič</h3>
+    <pre><span class="c"># Linux bo shranil token za prihodnje ukaze</span>
+<span class="k">git config --global credential.helper store</span>
+
+<span class="c"># Po naslednjem push → token se shrani in ne bo več vpraša</span></pre>
+
+    <div class="success">✓ Koda je na GitHubu! Odpri <strong>github.com/TvojeIme/radiola</strong> in jo vidiš.</div>
+  </div>
+</div>
+
+
+<!-- KORAK 5 -->
+<div class="big-step">
+  <div class="big-num">5</div>
+  <div class="big-body">
+    <div class="big-title">Preveri da GitHub Actions deluje</div>
+    <div class="substeps">
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Na GitHub pojdi na tvoj repozitorij → zavihek <strong>Actions</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Vidiš workflow <strong>"Build Radiola"</strong> → trenutno ne bo zagnan ker čaka na tag</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Preveri da je <code>.github/workflows/build.yml</code> vidna pod <strong>Code</strong> zavihkom</div></div>
+    </div>
+    <div class="note">Workflow se zažene samo ko ustvariš Git tag (npr. <code>v1.4.0</code>). To naredimo v naslednjem koraku.</div>
+  </div>
+</div>
+
+
+<!-- KORAK 6 -->
+<div class="big-step">
+  <div class="big-num">6</div>
+  <div class="big-body">
+    <div class="big-title">Ustvari Release — GitHub zgradi EXE samodejno</div>
+
+    <p>Ko si pripravljen za objavo nove verzije:</p>
+    <pre><span class="c"># Pojdi v mapo projekta</span>
+<span class="k">cd ~/radiola</span>
+
+<span class="c"># Ustvari Git tag z verzijo</span>
+<span class="k">git tag v1.4.0</span>
+
+<span class="c"># Pošlji tag na GitHub (to sproži build)</span>
+<span class="k">git push origin --tags</span></pre>
+
+    <h3>Kaj se zgodi na GitHub (samodejno, ~10 minut):</h3>
+    <div class="substeps">
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">GitHub Actions zazna tag <code>v1.4.0</code> in zažene 3 vzporedne buildi</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text"><strong>Windows strežnik</strong> → namesti Python + PyInstaller → zgradi <code>Radiola.exe</code></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text"><strong>Linux strežnik</strong> → zgradi binarni + AppImage</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text"><strong>macOS strežnik</strong> → zgradi .app bundle</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Vse 3 datoteke se naložijo v <strong>GitHub Release</strong></div></div>
+    </div>
+
+    <h3>Preveri napredek:</h3>
+    <pre><span class="c"># Na GitHub → zavihek Actions → klikni "Build Radiola"</span>
+<span class="c"># Vidiš 3 vzporedne jobi — zelena kljukica = uspeh</span></pre>
+
+    <h3>Prenesi EXE:</h3>
+    <div class="substeps">
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">GitHub → <strong>Releases</strong> (desno na glavni strani repozitorija)</div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Klikni <strong>v1.4.0</strong></div></div>
+      <div class="substep"><div class="substep-num"></div><div class="substep-text">Pod <strong>Assets</strong> vidiš:
+        <ul style="margin:6px 0 0 16px;font-size:.9rem;line-height:1.9">
+          <li>📦 <code>Radiola-1.4.0-Windows.zip</code> — Windows EXE</li>
+          <li>📦 <code>Radiola-1.4.0-Linux.tar.gz</code> — Linux binary</li>
+          <li>📦 <code>Radiola-1.4.0-x86_64.AppImage</code> — Linux AppImage</li>
+          <li>📦 <code>Radiola-1.4.0-macOS.tar.gz</code> — macOS</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <div class="success">🎉 Windows EXE je na voljo za prenos — brez da bi imel Windows!</div>
+  </div>
+</div>
+
+
+<!-- POTEM -->
+<h2>🔄 Za vsako naslednjo verzijo</h2>
+
+<p>Ko spreminjaš Radiolo in hočeš objaviti novo verzijo:</p>
+
+<pre><span class="k">cd ~/radiola</span>
+
+<span class="c"># 1. Kopiraj posodobljeno radiola.py</span>
+<span class="k">cp ~/Downloads/Radiola/radiola.py .</span>
+
+<span class="c"># 2. Posodobi CHANGELOG.md z novostmi (opcijsko)</span>
+
+<span class="c"># 3. Dodaj spremembe v Git</span>
+<span class="k">git add .
+git commit -m "v1.5.0 — opis sprememb"</span>
+
+<span class="c"># 4. Pošlji na GitHub</span>
+<span class="k">git push</span>
+
+<span class="c"># 5. Ustvari novo verzijo in sproži build</span>
+<span class="k">git tag v1.5.0
+git push origin --tags</span>
+
+<span class="c"># → čez 10 minut je nov EXE v Releases!</span></pre>
+
+
+<!-- CHEATSHEET -->
+<h2>📋 Cheat Sheet — Git ukazi</h2>
+
+<table>
+  <tr><th>Ukaz</th><th>Kaj naredi</th></tr>
+  <tr><td><code>git status</code></td><td>Pokaže katere datoteke so bile spremenjene</td></tr>
+  <tr><td><code>git add .</code></td><td>Doda VSE spremembe za commit</td></tr>
+  <tr><td><code>git add radiola.py</code></td><td>Doda samo eno datoteko</td></tr>
+  <tr><td><code>git commit -m "opis"</code></td><td>Shrani spremembe z opisom</td></tr>
+  <tr><td><code>git push</code></td><td>Naloži na GitHub</td></tr>
+  <tr><td><code>git pull</code></td><td>Prenese spremembe z GitHuba</td></tr>
+  <tr><td><code>git log --oneline</code></td><td>Pokaže zgodovino commitov</td></tr>
+  <tr><td><code>git tag v1.5.0</code></td><td>Ustvari tag za novo verzijo</td></tr>
+  <tr><td><code>git push origin --tags</code></td><td>Naloži tag → sproži GitHub Actions build</td></tr>
+  <tr><td><code>git tag</code></td><td>Pokaže vse tage</td></tr>
+</table>
+
+
+<!-- POGOST PROBLEMI -->
+<h2>🔧 Pogoste napake</h2>
+
+<table>
+  <tr><th>Napaka</th><th>Rešitev</th></tr>
+  <tr>
+    <td><code>remote: Repository not found</code></td>
+    <td>Preveri URL: <code>git remote -v</code> — mora biti <code>https://github.com/TvojeIme/radiola.git</code></td>
+  </tr>
+  <tr>
+    <td><code>Authentication failed</code></td>
+    <td>Uporabi Personal Access Token namesto gesla (korak 4c)</td>
+  </tr>
+  <tr>
+    <td><code>Updates were rejected</code></td>
+    <td>Najprej: <code>git pull origin main --rebase</code> nato <code>git push</code></td>
+  </tr>
+  <tr>
+    <td>GitHub Actions ne dela</td>
+    <td>Preveri zavihek <strong>Actions</strong> → klikni na rdeč X za podrobnosti napake</td>
+  </tr>
+  <tr>
+    <td>Build traja preveč</td>
+    <td>Normalno je 5–12 minut. Osveži stran.</td>
+  </tr>
+  <tr>
+    <td><code>tag already exists</code></td>
+    <td>Izbriši star tag: <code>git tag -d v1.4.0 && git push origin :refs/tags/v1.4.0</code></td>
+  </tr>
+</table>
+
+</div>
+
+<footer class="site-footer">
+  Radiola · GitHub vodič za začetnike · Brezplačno in odprtokodno
+</footer>
+
+</body>
+</html>

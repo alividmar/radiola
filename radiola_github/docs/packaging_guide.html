@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radiola – Vodič za pakiranje v EXE / AppImage</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --red:#cc2200; --bg:#f5f3ef; --card:#fff; --card2:#edeae4;
+    --border:#d8d3ca; --text:#1a1714; --muted:#7a7269;
+    --live:#1a8c3a; --blue:#2255cc; --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px}
+  .header{background:var(--red);color:#fff;padding:28px 40px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .logo{font-family:'DM Serif Display',serif;font-size:2.2rem}
+  .header-sub{opacity:.7;font-size:.9rem;margin-left:auto}
+  .content{max-width:900px;margin:0 auto;padding:36px 40px 60px}
+  h2{font-family:'DM Serif Display',serif;font-size:1.8rem;margin:44px 0 10px;padding-bottom:10px;border-bottom:2px solid var(--border)}
+  h2:first-of-type{margin-top:0}
+  h3{font-size:1rem;font-weight:600;margin:20px 0 8px}
+  p{margin-bottom:10px}
+  /* OS tabs */
+  .os-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px;background:var(--card);position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .os-btn{padding:12px 24px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+  .os-btn.active{color:var(--red);border-bottom-color:var(--red)}
+  .os-section{display:none}.os-section.active{display:block}
+  /* Steps */
+  .steps{margin:14px 0}
+  .step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+  .step-num{background:var(--red);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;margin-top:2px;counter-increment:step}
+  .steps{counter-reset:step}
+  .step-num::before{content:counter(step)}
+  .step-num span{display:none}
+  .step-text{font-size:.92rem;padding-top:3px}
+  /* Code blocks */
+  pre{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:16px 20px;overflow-x:auto;margin:12px 0;font-family:'DM Mono',monospace;font-size:.85rem;line-height:1.6}
+  code{font-family:'DM Mono',monospace;font-size:.85rem;background:var(--card2);padding:1px 5px;border-radius:4px;color:var(--red)}
+  pre code{background:none;color:inherit;padding:0}
+  .comment{color:#6c7086}
+  .cmd{color:#89dceb}
+  .str{color:#a6e3a1}
+  .kw{color:#cba6f7}
+  /* Cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:16px 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;border-left:4px solid var(--red)}
+  .card.green{border-left-color:var(--live)}
+  .card.blue{border-left-color:var(--blue)}
+  .card-icon{font-size:1.4rem;margin-bottom:4px}
+  .card-title{font-weight:600;font-size:.92rem;margin-bottom:3px}
+  .card-desc{font-size:.84rem;color:var(--muted)}
+  /* Tip */
+  .tip{background:#fff8e6;border:1px solid #e8d08a;border-left:4px solid #c8a000;border-radius:var(--radius);padding:12px 16px;font-size:.88rem;color:#5a4800;margin:14px 0}
+  .note{background:#eef3ff;border:1px solid #b8c8f0;border-left:4px solid var(--blue);border-radius:var(--radius);padding:12px 16px;font-size:.88rem;color:#1a2e6a;margin:14px 0}
+  .warn{background:#fff0f0;border:1px solid #ffb8b8;border-left:4px solid var(--red);border-radius:var(--radius);padding:12px 16px;font-size:.88rem;color:#660000;margin:14px 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+  th{text-align:left;padding:8px 12px;background:var(--card2);font-weight:600;border-bottom:2px solid var(--border);font-size:.8rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  tr:hover td{background:var(--bg)}
+  kbd{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-size:.82rem;font-family:'DM Sans',sans-serif;font-weight:600}
+  .badge{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:.78rem;font-weight:600;margin-left:6px}
+  .badge.green{background:#e8f8ee;border-color:#a8dbb8;color:var(--live)}
+  .badge.blue{background:#eef0ff;border-color:#b8bef0;color:var(--blue)}
+  .site-footer{text-align:center;padding:20px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--border);margin-top:20px}
+  @media(max-width:600px){.content{padding:20px 16px 40px}.header{padding:18px 16px}.os-btn{padding:10px 14px;font-size:.85rem}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">◉ Radiola</div>
+  <div>
+    <div style="font-size:1.1rem;font-weight:600">Vodič za pakiranje v EXE / AppImage</div>
+    <div class="header-sub">Windows · Linux · macOS</div>
+  </div>
+</header>
+
+<div class="os-tabs">
+  <button class="os-btn active" onclick="showOS('win')">🪟 Windows</button>
+  <button class="os-btn" onclick="showOS('linux')">🐧 Linux</button>
+  <button class="os-btn" onclick="showOS('mac')">🍎 macOS</button>
+  <button class="os-btn" onclick="showOS('github')">🤖 GitHub Actions</button>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════════ WINDOWS ═══════════════════ -->
+<div id="os-win" class="os-section active">
+
+<h2>Windows — pakiranje v .exe</h2>
+
+<div class="cards">
+  <div class="card green">
+    <div class="card-icon">📦</div>
+    <div class="card-title">Orodje: PyInstaller</div>
+    <div class="card-desc">Ustvari standalone .exe ki ne potrebuje nameščenega Pythona</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">📁</div>
+    <div class="card-title">Rezultat</div>
+    <div class="card-desc"><code>dist/Radiola/Radiola.exe</code> + vse odvisnosti v eni mapi</div>
+  </div>
+  <div class="card blue">
+    <div class="card-icon">⏱</div>
+    <div class="card-title">Čas gradnje</div>
+    <div class="card-desc">~2–5 minut pri prvi gradnji, ~1 min naslednjič</div>
+  </div>
+</div>
+
+<h3>1. Namesti orodja (enkrat)</h3>
+<pre><span class="comment"># V ukazni vrstici (CMD ali PowerShell)</span>
+<span class="cmd">pip install pyinstaller pillow requests</span></pre>
+
+<h3>2. Postavi datoteke</h3>
+<p>Prepričaj se da so vse datoteke v isti mapi:</p>
+<pre><span class="str">Radiola/</span>
+├── radiola.py          <span class="comment">← glavni program</span>
+├── radiola.spec        <span class="comment">← build konfiguracija</span>
+├── build.py            <span class="comment">← avtomatski build skript</span>
+├── requirements.txt
+└── ICONS/              <span class="comment">← mapa za ikone (lahko prazna)</span></pre>
+
+<h3>3. Zaženi avtomatski build</h3>
+<pre><span class="comment"># Opcija A: avtomatski build skript (priporočeno)</span>
+<span class="cmd">python build.py</span>
+
+<span class="comment"># Opcija B: direktno PyInstaller</span>
+<span class="cmd">pyinstaller radiola.spec --clean --noconfirm</span></pre>
+
+<h3>4. Rezultat</h3>
+<pre><span class="str">dist/
+└── Radiola/
+    ├── Radiola.exe     ← glavna izvršilna datoteka
+    ├── _internal/      ← Python runtime + odvisnosti
+    └── ICONS/          ← mapa za ikone</span></pre>
+
+<div class="tip">
+  <strong>Distribucija:</strong> Celotno mapo <code>dist/Radiola/</code> zapakiraj v ZIP in jo pošlji naprej. Radiola.exe ne deluje brez <code>_internal/</code> mape!
+</div>
+
+<h3>5. Namestitev mpv na ciljnem računalniku</h3>
+<div class="steps">
+  <div class="step"><div class="step-num"></div><div class="step-text">Prenesi <strong>mpv za Windows</strong> z <a href="https://mpv.io/installation/">mpv.io/installation</a> → Windows builds</div></div>
+  <div class="step"><div class="step-num"></div><div class="step-text">Razpakira in kopiraj <code>mpv.exe</code> v isto mapo kot <code>Radiola.exe</code></div></div>
+  <div class="step"><div class="step-num"></div><div class="step-text">Alternativa: dodaj mpv v sistemski PATH da deluje globalno</div></div>
+</div>
+
+<h3>Pogoste težave</h3>
+<table>
+  <tr><th>Napaka</th><th>Rešitev</th></tr>
+  <tr><td><code>ModuleNotFoundError: PIL</code></td><td><kbd>pip install pillow</kbd></td></tr>
+  <tr><td>Antivirusni alarm</td><td>Normalno za PyInstaller exe-je — dodaj izjemo ali podpiši exe</td></tr>
+  <tr><td>Exe se takoj zapre</td><td>Zaženi iz CMD da vidiš napako: <kbd>cd dist\Radiola && Radiola.exe</kbd></td></tr>
+  <tr><td>Manjkajoče ikone v oknu</td><td>Preveri da je <code>_internal/</code> mapa zraven exe-ja</td></tr>
+  <tr><td><code>No player found</code></td><td>Kopiraj <code>mpv.exe</code> v mapo Radiola.exe</td></tr>
+</table>
+
+<h3>Opcijsko: ena datoteka (--onefile)</h3>
+<pre><span class="comment"># Ustvari en sam .exe (večji, počasnejši zagon ~5s)</span>
+<span class="cmd">pyinstaller radiola.py --onefile --windowed --name Radiola</span></pre>
+
+<div class="note">
+  <strong>Priporočamo</strong> mapo namesto <code>--onefile</code> — zagon je takojšen in ni težav z antivirusom.
+</div>
+
+</div>
+
+<!-- ═══════════════════ LINUX ═══════════════════ -->
+<div id="os-linux" class="os-section">
+
+<h2>Linux — binarni program + AppImage</h2>
+
+<div class="cards">
+  <div class="card green">
+    <div class="card-icon">🐧</div>
+    <div class="card-title">PyInstaller binary</div>
+    <div class="card-desc">Deluje na isti distribuciji (Ubuntu 22.04 → samo Ubuntu 22.04+)</div>
+  </div>
+  <div class="card blue">
+    <div class="card-icon">📦</div>
+    <div class="card-title">AppImage</div>
+    <div class="card-desc">Ena datoteka, deluje na vseh modernih Linux distribucijah — priporočeno za distribucijo</div>
+  </div>
+</div>
+
+<h3>1. Namesti odvisnosti</h3>
+<pre><span class="comment"># Python paketi</span>
+<span class="cmd">pip install pyinstaller pillow requests --break-system-packages</span>
+
+<span class="comment"># Sistemske odvisnosti (Ubuntu/Debian)</span>
+<span class="cmd">sudo apt install python3-tk libpython3-dev</span></pre>
+
+<h3>2. Build</h3>
+<pre><span class="comment"># Avtomatski build skript</span>
+<span class="cmd">python3 build.py</span>
+
+<span class="comment"># Ali direktno</span>
+<span class="cmd">pyinstaller radiola.spec --clean --noconfirm</span></pre>
+
+<h3>3. Testiranje</h3>
+<pre><span class="cmd">cd dist/Radiola
+./Radiola</span></pre>
+
+<h3>4. AppImage — distribucija na vse Linux sisteme</h3>
+<div class="steps">
+  <div class="step"><div class="step-num"></div><div class="step-text">Namesti appimagetool:
+    <pre><span class="cmd">snap install appimagetool --classic</span>
+<span class="comment"># ali prenesi direktno:</span>
+<span class="cmd">wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+chmod +x appimagetool-x86_64.AppImage</span></pre>
+  </div></div>
+  <div class="step"><div class="step-num"></div><div class="step-text">Zaženi build.py — samodejno ustvari AppImage če appimagetool obstaja:
+    <pre><span class="cmd">python3 build.py</span>
+<span class="comment"># Rezultat: Radiola-1.4.0-x86_64.AppImage</span></pre>
+  </div></div>
+  <div class="step"><div class="step-num"></div><div class="step-text">Testiranje AppImage:
+    <pre><span class="cmd">chmod +x Radiola-1.4.0-x86_64.AppImage
+./Radiola-1.4.0-x86_64.AppImage</span></pre>
+  </div></div>
+</div>
+
+<h3>mpv namestitev (za končne uporabnike)</h3>
+<pre><span class="comment"># Ubuntu/Debian</span>
+<span class="cmd">sudo apt install mpv</span>
+
+<span class="comment"># Fedora</span>
+<span class="cmd">sudo dnf install mpv</span>
+
+<span class="comment"># Arch</span>
+<span class="cmd">sudo pacman -S mpv</span></pre>
+
+<h3>Pogoste težave</h3>
+<table>
+  <tr><th>Napaka</th><th>Rešitev</th></tr>
+  <tr><td><code>_tkinter not found</code></td><td><kbd>sudo apt install python3-tk</kbd></td></tr>
+  <tr><td>Manjkajoče knjižnice</td><td>Gradi na najstarejši podprti distribuciji (Ubuntu 20.04 LTS)</td></tr>
+  <tr><td>AppImage se ne zažene</td><td><kbd>chmod +x *.AppImage</kbd> in zaženi z <kbd>./</kbd></td></tr>
+  <tr><td><code>FUSE not found</code></td><td><kbd>sudo apt install libfuse2</kbd> ali <kbd>./App.AppImage --appimage-extract-and-run</kbd></td></tr>
+</table>
+
+</div>
+
+<!-- ═══════════════════ macOS ═══════════════════ -->
+<div id="os-mac" class="os-section">
+
+<h2>macOS — .app bundle</h2>
+
+<h3>1. Odvisnosti</h3>
+<pre><span class="comment"># Homebrew (če ni nameščen)</span>
+<span class="cmd">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span>
+
+<span class="comment"># Python in mpv</span>
+<span class="cmd">brew install python mpv</span>
+
+<span class="comment"># Python paketi</span>
+<span class="cmd">pip3 install pyinstaller pillow requests</span></pre>
+
+<h3>2. Build</h3>
+<pre><span class="cmd">python3 build.py</span>
+<span class="comment"># Rezultat: dist/Radiola.app</span></pre>
+
+<h3>3. Distribucija</h3>
+<pre><span class="comment"># Ustvari DMG (potrebuje create-dmg)</span>
+<span class="cmd">brew install create-dmg
+create-dmg \
+  --volname "Radiola" \
+  --window-size 400 200 \
+  --icon "Radiola.app" 100 100 \
+  "Radiola-1.4.0.dmg" \
+  "dist/"</span></pre>
+
+<div class="warn">
+  <strong>Gatekeeper:</strong> macOS bo blokiral nepotrjene aplikacije. Uporabniki morajo iti v <strong>Sistemske nastavitve → Zasebnost in varnost</strong> ter dovoliti odpiranje. Za pravo distribucijo je potreben Apple Developer certifikat (~$99/leto).
+</div>
+
+</div>
+
+<!-- ═══════════════════ GitHub Actions ═══════════════════ -->
+<div id="os-github" class="os-section">
+
+<h2>GitHub Actions — samodejni build za vse platforme</h2>
+
+<p>Ko ustvariš GitHub tag (npr. <code>v1.4.0</code>), GitHub samodejno zgradi Radiolo za Windows, Linux in macOS ter objavi Release.</p>
+
+<div class="steps">
+  <div class="step"><div class="step-num"></div><div class="step-text">Inicializiraj GitHub repozitorij (če še ni):
+    <pre><span class="cmd">cd ~/radiola
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/TvojeIme/radiola.git
+git push -u origin main</span></pre>
+  </div></div>
+
+  <div class="step"><div class="step-num"></div><div class="step-text">Ustvari mapo za workflow:
+    <pre><span class="cmd">mkdir -p .github/workflows
+cp build.yml .github/workflows/build.yml
+git add .github/
+git commit -m "Add GitHub Actions build workflow"
+git push</span></pre>
+  </div></div>
+
+  <div class="step"><div class="step-num"></div><div class="step-text">Ustvari Release z novo verzijo:
+    <pre><span class="comment"># Posodobi VERSION v radiola.py na "1.4.1"</span>
+<span class="cmd">git add radiola.py
+git commit -m "Bump version to 1.4.1"
+git tag v1.4.1
+git push origin main --tags</span></pre>
+  </div></div>
+
+  <div class="step"><div class="step-num"></div><div class="step-text">GitHub Actions samodejno:
+    <ul style="margin:4px 0 0 16px;font-size:.9rem">
+      <li>Zgradi Windows .exe na windows-latest</li>
+      <li>Zgradi Linux binary + AppImage na ubuntu-22.04</li>
+      <li>Zgradi macOS .app na macos-latest</li>
+      <li>Objavi GitHub Release z vsemi datotekami</li>
+    </ul>
+  </div></div>
+
+  <div class="step"><div class="step-num"></div><div class="step-text">Preveri build na: <strong>github.com/TvojeIme/radiola/actions</strong></div></div>
+</div>
+
+<h3>Struktura repozitorija</h3>
+<pre><span class="str">radiola/</span>
+├── .github/
+│   └── workflows/
+│       └── build.yml       <span class="comment">← GitHub Actions workflow</span>
+├── radiola.py
+├── radiola.spec            <span class="comment">← PyInstaller spec</span>
+├── build.py                <span class="comment">← lokalni build skript</span>
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+├── README.md
+├── CHANGELOG.md
+├── ICONS/
+│   └── .gitkeep
+└── docs/
+    ├── radiola_navodila.html
+    └── packaging_guide.html</pre>
+
+<h3>Ročni zagon brez taga</h3>
+<p>Workflow ima <code>workflow_dispatch</code> — zaženeš ga ročno v GitHub → Actions → Build Radiola → Run workflow.</p>
+
+<div class="note">
+  <strong>Brezplačno:</strong> GitHub Actions je brezplačen za javne repozitorije. Za zasebne repo-je je na voljo 2000 minut/mesec brezplačno (en build = ~10 minut).
+</div>
+
+<h3>Preverjanje verzij</h3>
+<table>
+  <tr><th>Ukaz</th><th>Kaj naredi</th></tr>
+  <tr><td><code>git tag v1.4.0 && git push origin --tags</code></td><td>Sproži build in Release</td></tr>
+  <tr><td><code>git tag -d v1.4.0</code></td><td>Izbriši lokalni tag</td></tr>
+  <tr><td><code>git push origin :refs/tags/v1.4.0</code></td><td>Izbriši tag na GitHubu</td></tr>
+</table>
+
+</div>
+
+</div><!-- /content -->
+
+<footer class="site-footer">
+  Radiola v1.4.0 &nbsp;·&nbsp; PyInstaller &nbsp;·&nbsp; GitHub Actions
+</footer>
+
+<script>
+function showOS(os) {
+  document.querySelectorAll('.os-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.os-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('os-' + os).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

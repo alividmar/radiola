@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radiola – Navodila / Manual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --red:     #cc2200;
+    --red-d:   #991a00;
+    --bg:      #f5f3ef;
+    --card:    #ffffff;
+    --card2:   #edeae4;
+    --border:  #d8d3ca;
+    --text:    #1a1714;
+    --muted:   #7a7269;
+    --live:    #1a8c3a;
+    --accent:  #cc2200;
+    --radius:  10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--red);
+    color: #fff;
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .logo span { opacity: .55; font-size: 1rem; font-family: 'DM Sans', sans-serif; font-weight: 300; margin-left: 10px; }
+  .version-badge {
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: .8rem;
+    letter-spacing: .5px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .header-sub {
+    font-size: .9rem;
+    opacity: .75;
+    font-weight: 300;
+    margin-left: auto;
+    align-self: center;
+  }
+
+  /* ── Lang tabs ── */
+  .lang-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    padding: 0 40px;
+    background: var(--card);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .tab-btn {
+    padding: 14px 28px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s;
+  }
+  .tab-btn.active {
+    color: var(--red);
+    border-bottom-color: var(--red);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  /* ── Content ── */
+  .content { max-width: 860px; margin: 0 auto; padding: 36px 40px 60px; }
+
+  .lang-section { display: none; }
+  .lang-section.active { display: block; }
+
+  /* ── Section titles ── */
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.9rem;
+    color: var(--text);
+    margin: 44px 0 6px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 22px 0 8px;
+  }
+
+  p { margin-bottom: 10px; color: var(--text); }
+
+  /* ── Info cards (feature blocks) ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--red);
+    border-radius: 4px 0 0 4px;
+  }
+  .card.green::before { background: var(--live); }
+  .card.blue::before  { background: #2255cc; }
+  .card.gold::before  { background: #b07d00; }
+
+  .card-icon { font-size: 1.5rem; margin-bottom: 6px; display: block; }
+  .card-title { font-weight: 600; font-size: .95rem; margin-bottom: 4px; }
+  .card-desc { font-size: .88rem; color: var(--muted); line-height: 1.55; }
+
+  /* ── Steps ── */
+  .steps { counter-reset: step; margin: 14px 0; }
+  .step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    counter-increment: step;
+    background: var(--red);
+    color: #fff;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text { font-size: .92rem; padding-top: 3px; }
+  .step-text strong { color: var(--text); }
+
+  /* ── Key chips ── */
+  kbd {
+    display: inline-block;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 7px;
+    font-size: .82rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  /* ── Tip box ── */
+  .tip {
+    background: #fff8e6;
+    border: 1px solid #e8d08a;
+    border-left: 4px solid #c8a000;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: .88rem;
+    color: #5a4800;
+    margin: 14px 0;
+  }
+  .tip strong { color: #3a3000; }
+
+  .note {
+    background: #eef3ff;
+    border: 1px solid #b8c8f0;
+    border-left: 4px solid #2255cc;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: .88rem;
+    color: #1a2e6a;
+    margin: 14px 0;
+  }
+
+  /* ── UI diagram ── */
+  .ui-diagram {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 18px 0;
+    font-size: .85rem;
+  }
+  .ui-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .ui-zone-label {
+    position: absolute;
+    top: -10px; left: 12px;
+    background: var(--card);
+    padding: 0 6px;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .ui-zone.top    { border-color: var(--red);  }
+  .ui-zone.middle { border-color: #2255cc; }
+  .ui-zone.bottom { border-color: var(--live); }
+  .ui-zone.top    .ui-zone-label { color: var(--red); }
+  .ui-zone.middle .ui-zone-label { color: #2255cc; }
+  .ui-zone.bottom .ui-zone-label { color: var(--live); }
+  .ui-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 3px 0;
+    flex-wrap: wrap;
+  }
+  .ui-box {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: .8rem;
+    font-weight: 500;
+  }
+  .ui-box.red   { background: #ffeaea; border-color: #ffb8b8; color: var(--red); }
+  .ui-box.green { background: #e8f8ee; border-color: #a8dbb8; color: var(--live); }
+  .ui-box.blue  { background: #eef0ff; border-color: #b8bef0; color: #2244bb; }
+  .ui-arrow { color: var(--muted); font-size: .9rem; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .88rem; }
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--card2);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--muted);
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+
+  /* ── Footer ── */
+  .site-footer {
+    text-align: center;
+    padding: 20px;
+    font-size: .8rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .content { padding: 24px 18px 40px; }
+    .site-header { padding: 20px 18px 18px; }
+    .lang-tabs { padding: 0 18px; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div>
+    <div class="logo">◉ Radiola <span>Internet Radio Player</span></div>
+  </div>
+  <div class="version-badge">v 1.2.0</div>
+  <div class="header-sub">Navodila za uporabo &nbsp;·&nbsp; User Manual</div>
+</header>
+
+<nav class="lang-tabs">
+  <button class="tab-btn active" onclick="switchLang('si')">🇸🇮 Slovenščina</button>
+  <button class="tab-btn"        onclick="switchLang('en')">🇬🇧 English</button>
+</nav>
+
+<!-- ══════════════════ SLOVENŠČINA ══════════════════ -->
+<div class="content">
+<div id="lang-si" class="lang-section active">
+
+  <h2>Postavitev okna</h2>
+  <div class="ui-diagram">
+    <div class="ui-zone top">
+      <span class="ui-zone-label">Zgoraj</span>
+      <div class="ui-row">
+        <div class="ui-box">◉ Radiola</div>
+        <div class="ui-arrow">→</div>
+        <div class="ui-box">Predvajalnik &amp; sistem</div>
+      </div>
+      <div class="ui-row" style="margin-top:8px">
+        <div class="ui-box blue">POSTAJA ◀ dropdown ▶</div>
+        <div class="ui-box">🔊 Glasnost</div>
+        <div class="ui-box">🎙 Dvig</div>
+        <div class="ui-box red" style="width:64px;text-align:center">ikona</div>
+      </div>
+      <div class="ui-row" style="margin-top:4px">
+        <div class="ui-box">ZDAJ PREDVAJA – naslov pesmi / oddaje</div>
+      </div>
+    </div>
+    <div class="ui-zone middle">
+      <span class="ui-zone-label">Sredina – ikone postaj</span>
+      <div class="ui-row">
+        <div class="ui-box">📻 Val 202</div>
+        <div class="ui-box">🎸 ROCK 1</div>
+        <div class="ui-box">…</div>
+        <div class="ui-box">16 mest (2 vrsti × 8)</div>
+      </div>
+    </div>
+    <div class="ui-zone bottom">
+      <span class="ui-zone-label">Spodaj – upravljanje</span>
+      <div class="ui-row">
+        <div class="ui-box green">▶ Predvajaj</div>
+        <div class="ui-box red">■ Ustavi</div>
+        <div class="ui-box">Timer: 30 min ▶ ×</div>
+        <div class="ui-box">● V ŽIVO</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Začetek uporabe</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Zaženi program: <strong>python3 radiola.py</strong> (potrebuješ Python 3.8+ in pakete: <kbd>pip install pillow requests mutagen</kbd>)</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Klikni gumb <strong>▶ Predvajaj</strong> ali klikni na ikono postaje da začneš predvajanje.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Glasnost nastavi z drsnikom 🔊 v zgornjem delu okna (0–100%).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Menjava postaje: klikni ikono, izberi iz spustnega menija ali uporabi gumba <kbd>◀</kbd> <kbd>▶</kbd>.</div></div>
+  </div>
+
+  <h2>Upravljanje postaj</h2>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">✏️</span>
+      <div class="card-title">Uredi postaje</div>
+      <div class="card-desc">Klikni gumb <strong>✏ Uredi postaje</strong>. Dodaj, uredi ali izbriši postaje. Vsaka postaja ima: ime, URL streama, ikono in opcijsko ključno besedo za dvig glasnosti.</div>
+    </div>
+    <div class="card blue">
+      <span class="card-icon">📋</span>
+      <div class="card-title">Uvoz / Izvoz</div>
+      <div class="card-desc">V urejevalniku sta gumba <strong>📂 Uvozi .txt</strong> in <strong>💾 Izvozi .txt</strong>. Format: <code>Ime = URL = base64_ikona</code> (ikona je neobvezna).</div>
+    </div>
+    <div class="card green">
+      <span class="card-icon">🖼️</span>
+      <div class="card-title">Ikone postaj</div>
+      <div class="card-desc">Klikni <strong>📁</strong> v urejevalniku da odpreš brskalnik ikon s predogledom. Ikone se shranjujejo v visoki ločljivosti (225×225 px). Deluje s PNG, JPG, WEBP.</div>
+    </div>
+    <div class="card gold">
+      <span class="card-icon">🌐</span>
+      <div class="card-title">Samodejni prenos ikon</div>
+      <div class="card-desc">Gumb <strong>🌐 Ikona</strong> poskuša sam prenesti logo postaje iz interneta (Google Favicon, HTML scraping). Deluje za večino znanih postaj.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">↕️</span>
+      <div class="card-title">Razporeditev</div>
+      <div class="card-desc">Postaje v urejevalniku premakneš z gumboma <strong>▲ ▼</strong>. Prvih 16 postaj (2 vrsti po 8) je vidnih kot ikone v glavnem oknu.</div>
+    </div>
+    <div class="card blue">
+      <span class="card-icon">🔍</span>
+      <div class="card-title">Iskanje in filtriranje</div>
+      <div class="card-desc">V urejevalniku je iskalno polje na vrhu. Piši ime postaje in seznam se sproti filtrira. Gumb <strong>Podvojene</strong> poišče morebitne duplikate.</div>
+    </div>
+  </div>
+
+  <h2>Glasnost in dvig pri govoru</h2>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🔊</span>
+      <div class="card-title">Drsnik glasnosti</div>
+      <div class="card-desc">Drsnik 🔊 v zgornjem delu neposredno nastavi glasnost predvajanja (0–100%). Nastavitev se shrani in obnovi ob naslednjem zagonu.</div>
+    </div>
+    <div class="card green">
+      <span class="card-icon">🎙️</span>
+      <div class="card-title">Samodejni dvig pri govoru</div>
+      <div class="card-desc">Ko program zazna govorno vsebino (po naslovu pesmi/oddaje), samodejno dvigne glasnost. Dvig nastavi z drsnikom <strong>+0%–+60%</strong> ali ga izklopi z dropdownom.</div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>Primer:</strong> Nastavi ključno besedo <kbd>glasovanje;govorna;mix</kbd> — ko naslov pesmi vsebuje katero koli od teh besed (delno ujemanje, ne glede na vejice), program dvigne glasnost.
+  </div>
+
+  <h3>Nastavitev ključnih besed</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Odpri <strong>Nastavitve → Ključna beseda…</strong></div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Vpiši eno ali več besed, ločenih s podpičjem <kbd>;</kbd> npr. <kbd>govorna;glasovanje;pogovor</kbd></div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Program išče <strong>podbesedilo</strong> — <kbd>glasov</kbd> zazna tudi <em>glasovanje</em>, <em>glasovanju</em>, <em>glasoval</em>.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Za posamezno postajo nastavi svojo ključno besedo v urejevalniku (polje <em>Ključna beseda postaje</em>); prazno pomeni globalna nastavitev.</div></div>
+  </div>
+
+  <h2>Timer za izklop</h2>
+  <p>Nastavi čas v minutah (sprtni gumb) in pritisni <strong>▶</strong> ob timerju. Program bo postopoma utišal glasnost v zadnjih 60 sekundah in nato ustavil predvajanje. Izklopi z <strong>×</strong>.</p>
+
+  <div class="tip">
+    <strong>Nasvet za spanje:</strong> Odkljukaj <em>"Utišaj pred izklopom"</em> če ne želiš postopnega utišanja — radio se bo ustavil nenadoma.
+  </div>
+
+  <h2>Datoteke programa</h2>
+  <table>
+    <tr><th>Datoteka</th><th>Vsebina</th></tr>
+    <tr><td><kbd>radiola.py</kbd></td><td>Glavni program — zaženi z Python 3</td></tr>
+    <tr><td><kbd>stations.json</kbd></td><td>Seznam postaj z URL-ji in ikonami (base64)</td></tr>
+    <tr><td><kbd>settings.json</kbd></td><td>Nastavitve: glasnost, dvig, zadnja postaja, jezik…</td></tr>
+    <tr><td><kbd>scraper_ikone.py</kbd></td><td>Ločen pripomoček: samodejni prenos ikon iz spleta</td></tr>
+  </table>
+
+  <div class="note">
+    <strong>Predvajalnik:</strong> Radiola za predvajanje potrebuje <strong>mpv</strong> (Linux/Mac) ali <strong>mpv.exe / ffplay</strong> (Windows). Na Linuxu: <kbd>sudo apt install mpv</kbd>. Program poroča o stanju predvajalnika v glavi okna.
+  </div>
+
+  <h2>Brskalnik ikon</h2>
+  <p>Ko klikneš 📁 v urejevalniku postaj, se odpre <strong>lasten brskalnik</strong> s predogledom slik:</p>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Ob prvem odprtju se postavi v <strong>mapo programa</strong> (kjer leži radiola.py).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Navigiraj z gumboma <strong>⬆ Gor</strong> in <strong>🏠 Domov</strong>, ali klikni na mapo v mreži.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Klikni na sličico slike — desno se pojavi <strong>predogled 140×140 px</strong>.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Potrdi z <strong>✓ Potrdi</strong>. Ikona se shrani v polni ločljivosti (225×225 px).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Naslednjič se brskalnik <strong>odpre v zadnji uporabljeni mapi</strong>.</div></div>
+  </div>
+
+
+  <h2>🌍 Iskanje postaj</h2>
+  <p>Dialog za iskanje postaj ima dva zavihka: <strong>Radio Browser</strong> (brez registracije) in <strong>RapidAPI</strong> (z brezplačnim ključem).</p>
+
+  <div class="cards">
+    <div class="card green">
+      <span class="card-icon">🆓</span>
+      <div class="card-title">Radio Browser — brez registracije</div>
+      <div class="card-desc">~35.000 aktivnih postaj, brez omejitev zahtev, odprtokoden, preverja delovanje streamov vsak dan.</div>
+    </div>
+    <div class="card blue">
+      <span class="card-icon">🔑</span>
+      <div class="card-title">RapidAPI — z brezplačnim ključem</div>
+      <div class="card-desc">90.000+ postaj iz 200+ držav. 500 iskanj/mesec brezplačno. Boljše ikone in metapodatki.</div>
+    </div>
+  </div>
+
+  <h3>🆓 Radio Browser (priporočeno za začetek)</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Klikni <strong>✏ Uredi postaje</strong> → <strong>🌍 Poišči postaje</strong>.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Zavihek <strong>🆓 Radio Browser</strong> je že aktiven — ni potrebna nobena nastavitev.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Izberi državo, žanr, razvrsti po glasovih/priljubljenosti/imenu/bitratu.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Obkljukaj <strong>"Samo aktivne"</strong> da vidiš le postaje s delovnim streamom.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Klikni <strong>🔍 Poišči</strong> → izberi postaje → <strong>✓ Dodaj izbrane</strong>.</div></div>
+  </div>
+
+  <h3>🔑 RapidAPI (več postaj)</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Registracija na <strong>rapidapi.com</strong> (brezplačno) → poišči "50K Radio Stations" → Subscribe.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">V Radioli: <strong>Nastavitve → RapidAPI ključ…</strong> → prilepi ključ → Shrani.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">V iskanju preklopni na zavihek <strong>🔑 RapidAPI</strong> in išči kot pri Radio Browser.</div></div>
+  </div>
+
+  <div class="tip">
+    <strong>Nasvet:</strong> Začni z Radio Browser — brez registracije, brez omejitev. Dodaj RapidAPI ključ samo če potrebuješ dostop do postaj ki jih Radio Browser nima.
+  </div>
+
+  <h3>Skupne funkcije iskanja</h3>
+  <p><kbd>Ctrl+klik</kbd> za izbor več postaj, <kbd>Ctrl+A</kbd> za vse. Dvojni klik prikaže detajle postaje. Ikone se prenesejo samodejno ob dodajanju.</p>
+
+  <h2>Pogosta vprašanja</h2>
+  <table>
+    <tr><th>Težava</th><th>Rešitev</th></tr>
+    <tr><td>Radio se ne predvaja</td><td>Preveri da je <strong>mpv</strong> nameščen. Oglej si sporočilo v glavi okna (predvajalnik: mpv / no player).</td></tr>
+    <tr><td>Ikona se ne prikaže (krog z inicialko)</td><td>Ikona je morda shranjena v prenizki ločljivosti. Klikni 🌐 v urejevalniku da jo prenesemo znova.</td></tr>
+    <tr><td>Dvig glasnosti ne deluje</td><td>Preverite da ni dropdown nastavljan na "Izklopljeno" in da so ključne besede pravilno nastavljene.</td></tr>
+    <tr><td>Prazni gumbi postaj</td><td>Postaje 1–16 so vidne kot ikone. Dodaj postaje v urejevalniku ali premakni obstoječe na prva mesta.</td></tr>
+    <tr><td>Aplikacija ne shrani nastavitev</td><td>Preverite da ima Python pravico pisati v mapo programa (settings.json, stations.json).</td></tr>
+  </table>
+
+</div>
+
+<!-- ══════════════════ ENGLISH ══════════════════ -->
+<div id="lang-en" class="lang-section">
+
+  <h2>Window Layout</h2>
+  <div class="ui-diagram">
+    <div class="ui-zone top">
+      <span class="ui-zone-label">Top</span>
+      <div class="ui-row">
+        <div class="ui-box">◉ Radiola</div>
+        <div class="ui-arrow">→</div>
+        <div class="ui-box">Player &amp; system info</div>
+      </div>
+      <div class="ui-row" style="margin-top:8px">
+        <div class="ui-box blue">STATION ◀ dropdown ▶</div>
+        <div class="ui-box">🔊 Volume</div>
+        <div class="ui-box">🎙 Boost</div>
+        <div class="ui-box red" style="width:64px;text-align:center">icon</div>
+      </div>
+      <div class="ui-row" style="margin-top:4px">
+        <div class="ui-box">NOW PLAYING – song / show title</div>
+      </div>
+    </div>
+    <div class="ui-zone middle">
+      <span class="ui-zone-label">Middle – station icons</span>
+      <div class="ui-row">
+        <div class="ui-box">📻 Val 202</div>
+        <div class="ui-box">🎸 ROCK 1</div>
+        <div class="ui-box">…</div>
+        <div class="ui-box">16 slots (2 rows × 8)</div>
+      </div>
+    </div>
+    <div class="ui-zone bottom">
+      <span class="ui-zone-label">Bottom – controls</span>
+      <div class="ui-row">
+        <div class="ui-box green">▶ Play</div>
+        <div class="ui-box red">■ Stop</div>
+        <div class="ui-box">Timer: 30 min ▶ ×</div>
+        <div class="ui-box">● LIVE</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Getting Started</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Launch the app: <strong>python3 radiola.py</strong> (requires Python 3.8+ and packages: <kbd>pip install pillow requests mutagen</kbd>)</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Click <strong>▶ Play</strong> or click a station icon to start streaming.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Adjust volume with the 🔊 slider at the top of the window (0–100%).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Switch stations by clicking an icon, selecting from the dropdown, or using the <kbd>◀</kbd> <kbd>▶</kbd> buttons.</div></div>
+  </div>
+
+  <h2>Managing Stations</h2>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">✏️</span>
+      <div class="card-title">Edit Stations</div>
+      <div class="card-desc">Click <strong>✏ Edit stations</strong>. Add, edit or delete stations. Each station has: name, stream URL, icon, and an optional keyword for the volume boost feature.</div>
+    </div>
+    <div class="card blue">
+      <span class="card-icon">📋</span>
+      <div class="card-title">Import / Export</div>
+      <div class="card-desc">Use <strong>📂 Import .txt</strong> and <strong>💾 Export .txt</strong> in the editor. Format: <code>Name = URL = base64_icon</code> (icon is optional).</div>
+    </div>
+    <div class="card green">
+      <span class="card-icon">🖼️</span>
+      <div class="card-title">Station Icons</div>
+      <div class="card-desc">Click <strong>📁</strong> in the editor to open the icon browser with preview. Icons are stored at full resolution (225×225 px). Supports PNG, JPG, WEBP.</div>
+    </div>
+    <div class="card gold">
+      <span class="card-icon">🌐</span>
+      <div class="card-title">Automatic Icon Fetch</div>
+      <div class="card-desc">The <strong>🌐 Icon</strong> button automatically downloads the station logo from the internet (Google Favicon, HTML scraping). Works for most known stations.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">↕️</span>
+      <div class="card-title">Reordering</div>
+      <div class="card-desc">Use <strong>▲ ▼</strong> buttons in the editor to reorder stations. The first 16 stations (2 rows of 8) appear as icon buttons in the main window.</div>
+    </div>
+    <div class="card blue">
+      <span class="card-icon">🔍</span>
+      <div class="card-title">Search &amp; Filter</div>
+      <div class="card-desc">Type in the search box at the top of the editor to filter stations in real time. The <strong>Duplicates</strong> button finds any duplicate entries.</div>
+    </div>
+  </div>
+
+  <h2>Volume &amp; Speech Boost</h2>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🔊</span>
+      <div class="card-title">Volume Slider</div>
+      <div class="card-desc">The 🔊 slider at the top directly controls playback volume (0–100%). The setting is saved and restored on next launch.</div>
+    </div>
+    <div class="card green">
+      <span class="card-icon">🎙️</span>
+      <div class="card-title">Automatic Speech Boost</div>
+      <div class="card-desc">When the app detects spoken content (by matching the now-playing title), it automatically raises the volume. Set the boost amount (+0–+60%) with the slider, or disable via the dropdown.</div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>Example:</strong> Set the keyword to <kbd>vote;talk;speech;mix</kbd> — whenever the now-playing title contains any of these words (partial match, case-insensitive), the volume will be raised.
+  </div>
+
+  <h3>Setting Up Keywords</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Go to <strong>Settings → Keyword…</strong></div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Enter one or more words separated by semicolons <kbd>;</kbd> e.g. <kbd>talk;news;vote;speech</kbd></div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">The app does <strong>partial (substring) matching</strong> — <kbd>vote</kbd> will also match <em>voter</em>, <em>voting</em>, <em>voted</em>.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Set a per-station keyword in the editor (<em>Station keyword</em> field); leave blank to use the global setting.</div></div>
+  </div>
+
+  <h2>Sleep Timer</h2>
+  <p>Set the number of minutes using the spin box, then press <strong>▶</strong> next to the timer. The app will gradually fade the volume during the last 60 seconds and then stop. Cancel with <strong>×</strong>.</p>
+
+  <div class="tip">
+    <strong>Tip:</strong> Uncheck <em>"Fade before stop"</em> if you don't want the gradual fade — the stream will stop immediately when the timer expires.
+  </div>
+
+  <h2>Program Files</h2>
+  <table>
+    <tr><th>File</th><th>Contents</th></tr>
+    <tr><td><kbd>radiola.py</kbd></td><td>Main program — run with Python 3</td></tr>
+    <tr><td><kbd>stations.json</kbd></td><td>Station list with stream URLs and icons (base64)</td></tr>
+    <tr><td><kbd>settings.json</kbd></td><td>Settings: volume, boost, last station, language…</td></tr>
+    <tr><td><kbd>scraper_ikone.py</kbd></td><td>Standalone tool: bulk icon download from the web</td></tr>
+  </table>
+
+  <div class="note">
+    <strong>Media player:</strong> Radiola requires <strong>mpv</strong> (Linux/Mac) or <strong>mpv.exe / ffplay</strong> (Windows) for audio playback. On Linux: <kbd>sudo apt install mpv</kbd>. The player status is shown in the window header.
+  </div>
+
+  <h2>Icon Browser</h2>
+  <p>Clicking 📁 in the station editor opens a <strong>built-in image browser</strong> with live preview:</p>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">On first launch it opens in the <strong>program folder</strong> (where radiola.py is located).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Navigate with <strong>⬆ Up</strong> and <strong>🏠 Home</strong>, or click a folder thumbnail in the grid.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Click an image thumbnail — a <strong>140×140 px preview</strong> appears on the right.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Confirm with <strong>✓ Confirm</strong>. The icon is saved at full resolution (225×225 px).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Next time, the browser <strong>remembers the last folder</strong> you used.</div></div>
+  </div>
+
+
+  <h2>🌍 Station Search</h2>
+  <p>The search dialog has two tabs: <strong>Radio Browser</strong> (no registration) and <strong>RapidAPI</strong> (free key required).</p>
+
+  <div class="cards">
+    <div class="card green">
+      <span class="card-icon">🆓</span>
+      <div class="card-title">Radio Browser — no registration</div>
+      <div class="card-desc">~35,000 active stations, unlimited requests, open source, stream health checked daily.</div>
+    </div>
+    <div class="card blue">
+      <span class="card-icon">🔑</span>
+      <div class="card-title">RapidAPI — free key required</div>
+      <div class="card-desc">90,000+ stations from 200+ countries. 500 searches/month free. Better icons and metadata.</div>
+    </div>
+  </div>
+
+  <h3>🆓 Radio Browser (recommended to start)</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Click <strong>✏ Edit stations</strong> → <strong>🌍 Find stations</strong>.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">The <strong>🆓 Radio Browser</strong> tab is active by default — no setup needed.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Select country, genre, and sort order (votes / popularity / name / bitrate).</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Check <strong>"Active only"</strong> to show only stations with working streams.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Click <strong>🔍 Search</strong> → select stations → <strong>✓ Add selected</strong>.</div></div>
+  </div>
+
+  <h3>🔑 RapidAPI (more stations)</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num"></div><div class="step-text">Sign up at <strong>rapidapi.com</strong> (free) → find "50K Radio Stations" → Subscribe.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">In Radiola: <strong>Settings → RapidAPI key…</strong> → paste key → Save.</div></div>
+    <div class="step"><div class="step-num"></div><div class="step-text">Switch to the <strong>🔑 RapidAPI</strong> tab in the search dialog and search as usual.</div></div>
+  </div>
+
+  <div class="tip">
+    <strong>Tip:</strong> Start with Radio Browser — no registration, no limits. Add a RapidAPI key only if you need stations not found in Radio Browser.
+  </div>
+
+  <h3>Common search features</h3>
+  <p><kbd>Ctrl+click</kbd> to select multiple stations, <kbd>Ctrl+A</kbd> for all. Double-click shows station details. Icons are downloaded automatically when adding.</p>
+
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr><th>Problem</th><th>Solution</th></tr>
+    <tr><td>Radio won't play</td><td>Make sure <strong>mpv</strong> is installed. Check the player status in the window header.</td></tr>
+    <tr><td>Icon not showing (circle with initials)</td><td>The icon may be stored at too low a resolution. Click 🌐 in the editor to re-download it.</td></tr>
+    <tr><td>Volume boost not working</td><td>Check that the dropdown is not set to "Off" and that keywords are correctly configured.</td></tr>
+    <tr><td>Empty station buttons</td><td>Stations 1–16 appear as icons. Add stations in the editor or move existing ones to the top 16 positions.</td></tr>
+    <tr><td>Settings not saving</td><td>Make sure Python has write permission in the program folder (settings.json, stations.json).</td></tr>
+  </table>
+
+</div>
+</div><!-- /content -->
+
+<footer class="site-footer">
+  Radiola v1.2.0 &nbsp;·&nbsp; Python / tkinter &nbsp;·&nbsp; Linux · Windows · macOS
+</footer>
+
+<script>
+  function switchLang(lang) {
+    document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('lang-' + lang).classList.add('active');
+    event.target.classList.add('active');
+    document.documentElement.lang = lang;
+  }
+</script>
+</body>
+</html>

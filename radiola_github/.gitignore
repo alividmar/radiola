@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Radiola runtime files (user data – ne commitaj)
+stations.json
+settings.json
+
+# Ikone (so lahko zelo velike zaradi base64)
+# Odkomentiraj spodnje če ne želiš commitati ikon:
+# ICONS/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
