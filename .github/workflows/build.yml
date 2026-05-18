@@ -56,8 +56,8 @@ jobs:
         shell: cmd
         run: |
           mkdir dist\RadioKlic\ICONS
-          echo Place station icons (.png/.jpg) here > dist\RadioKlic\ICONSeadme.txt
-          echo mpv player is included. No separate installation needed. > dist\RadioKlic\player_bundled.txt
+          echo Station icons folder > dist\RadioKlic\ICONS\readme.txt
+          echo mpv player included > dist\RadioKlic\player_bundled.txt
 
       - name: Package ZIP
         shell: pwsh
