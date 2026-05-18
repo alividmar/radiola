@@ -3,11 +3,14 @@ name: Build Radiola
 on:
   push:
     tags:
-      - 'v*'          # Zažene se pri tagu npr. v1.4.0
-  workflow_dispatch:  # Ročni zagon
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
-  contents: write     # Za ustvarjanje Release
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
 
@@ -15,167 +18,137 @@ jobs:
   # Windows EXE
   # ─────────────────────────────────────────────────
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install pyinstaller pillow requests
+        run: pip install pyinstaller pillow requests
 
       - name: Build EXE
-        run: |
-          pyinstaller radiola.spec --clean --noconfirm
+        run: pyinstaller radiola.spec --clean --noconfirm
 
-      - name: Create ICONS folder
+      - name: Prepare dist
+        shell: cmd
         run: |
-          mkdir -p dist\Radiola\ICONS
-          echo "# Sem daj ikone postaj" > dist\Radiola\ICONS\readme.txt
+          mkdir dist\Radiola\ICONS
+          echo Place station icons here > dist\Radiola\ICONS\readme.txt
 
       - name: Package ZIP
+        shell: pwsh
         run: |
           $ver = "${{ github.ref_name }}" -replace "^v", ""
+          if (-not $ver) { $ver = "dev" }
           Compress-Archive -Path dist\Radiola\* -DestinationPath "Radiola-$ver-Windows.zip"
-        shell: pwsh
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: Radiola-Windows
           path: Radiola-*-Windows.zip
           retention-days: 30
 
   # ─────────────────────────────────────────────────
-  # Linux Binary + AppImage
+  # Linux — brez grafičnega zaslona, samo paket
   # ─────────────────────────────────────────────────
   build-linux:
     runs-on: ubuntu-22.04
+    continue-on-error: true   # ← ne blokira Release če pade
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y python3-tk libpython3-dev
+          sudo apt-get install -y \
+            python3-tk python3-dev \
+            libx11-6 libxext6 libxrender1 libxrandr2 \
+            libxtst6 libxi6 libxcursor1 libxdamage1 \
+            libxcomposite1 libxfixes3 libatk1.0-0 \
+            libgtk-3-0 libgdk-pixbuf2.0-0 \
+            xvfb
 
       - name: Install Python dependencies
-        run: |
-          pip install pyinstaller pillow requests
+        run: pip install pyinstaller pillow requests
 
-      - name: Build Linux binary
+      - name: Build Linux binary (virtual display)
         run: |
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 2
           pyinstaller radiola.spec --clean --noconfirm
 
-      - name: Create ICONS folder
+      - name: Prepare dist
         run: |
           mkdir -p dist/Radiola/ICONS
-          echo "# Sem daj ikone postaj" > dist/Radiola/ICONS/readme.txt
+          echo "Place station icons here" > dist/Radiola/ICONS/readme.txt
 
       - name: Package tar.gz
         run: |
           VER="${{ github.ref_name }}"
           VER="${VER#v}"
+          if [ -z "$VER" ]; then VER="dev"; fi
           tar -czf "Radiola-${VER}-Linux.tar.gz" -C dist Radiola
 
-      - name: Build AppImage
-        run: |
-          # Prenesi appimagetool
-          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-
-          VER="${{ github.ref_name }}"
-          VER="${VER#v}"
-
-          # Ustvari AppDir
-          mkdir -p Radiola.AppDir/usr/bin
-          mkdir -p Radiola.AppDir/usr/share/applications
-          cp -r dist/Radiola Radiola.AppDir/usr/bin/Radiola_data
-
-          # AppRun
-          cat > Radiola.AppDir/AppRun << 'APPRUN'
-          #!/bin/bash
-          APPDIR="$(dirname "$(readlink -f "$0")")"
-          "$APPDIR/usr/bin/Radiola_data/Radiola" "$@"
-          APPRUN
-          chmod +x Radiola.AppDir/AppRun
-
-          # .desktop
-          cat > Radiola.AppDir/radiola.desktop << 'DESKTOP'
-          [Desktop Entry]
-          Name=Radiola
-          Type=Application
-          Exec=Radiola
-          Icon=radiola
-          Categories=Audio;Music;
-          Comment=Internet Radio Player
-          DESKTOP
-
-          cp Radiola.AppDir/radiola.desktop Radiola.AppDir/usr/share/applications/
-
-          # Zgradi AppImage
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage Radiola.AppDir "Radiola-${VER}-x86_64.AppImage"
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: Radiola-Linux
-          path: |
-            Radiola-*-Linux.tar.gz
-            Radiola-*-x86_64.AppImage
+          path: Radiola-*-Linux.tar.gz
           retention-days: 30
 
   # ─────────────────────────────────────────────────
-  # macOS .app
+  # macOS
   # ─────────────────────────────────────────────────
   build-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install pyinstaller pillow requests
+        run: pip install pyinstaller pillow requests
 
       - name: Build macOS app
-        run: |
-          pyinstaller radiola.spec --clean --noconfirm
+        run: pyinstaller radiola.spec --clean --noconfirm
 
-      - name: Package DMG
+      - name: Prepare dist
+        run: |
+          mkdir -p dist/Radiola/ICONS
+          echo "Place station icons here" > dist/Radiola/ICONS/readme.txt
+
+      - name: Package tar.gz
         run: |
           VER="${{ github.ref_name }}"
           VER="${VER#v}"
-          # Preprosta tar.gz (za DMG bi potreboval create-dmg orodje)
+          if [ -z "$VER" ]; then VER="dev"; fi
           tar -czf "Radiola-${VER}-macOS.tar.gz" -C dist Radiola
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: Radiola-macOS
           path: Radiola-*-macOS.tar.gz
           retention-days: 30
 
   # ─────────────────────────────────────────────────
-  # GitHub Release (samo pri tagu)
+  # Release — ustvari Release tudi če Linux pade
   # ─────────────────────────────────────────────────
   release:
     needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: |
+      always() &&
+      startsWith(github.ref, 'refs/tags/v') &&
+      needs.build-windows.result == 'success'
     steps:
       - uses: actions/checkout@v4
 
@@ -185,6 +158,9 @@ jobs:
           path: release-files
           merge-multiple: true
 
+      - name: List release files
+        run: ls -lh release-files/ || echo "No files"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -192,23 +168,23 @@ jobs:
           body: |
             ## Radiola ${{ github.ref_name }}
 
-            ### 📦 Prenosi
+            ### 📦 Downloads
 
-            | Platform | Datoteka | Opomba |
+            | Platform | File | Notes |
             |---|---|---|
-            | 🪟 Windows | `Radiola-*-Windows.zip` | Razpakira in zaženi Radiola.exe |
-            | 🐧 Linux | `Radiola-*-Linux.tar.gz` | `tar -xzf` + `./Radiola` |
-            | 🐧 Linux | `Radiola-*-x86_64.AppImage` | Chmod +x in zaženi direktno |
-            | 🍎 macOS | `Radiola-*-macOS.tar.gz` | Razpakira in zaženi |
+            | 🪟 Windows | `Radiola-*-Windows.zip` | Extract and run Radiola.exe |
+            | 🐧 Linux | `Radiola-*-Linux.tar.gz` | `tar -xzf` then `./Radiola` |
+            | 🍎 macOS | `Radiola-*-macOS.tar.gz` | Extract and run |
 
-            ### ⚠️ Predvajalnik (obvezno)
-            Radiola potrebuje **mpv** za predvajanje avdia:
+            ### ⚠️ Media player required
+            Radiola needs **mpv** for audio playback:
             - **Linux:** `sudo apt install mpv`
-            - **Windows:** [mpv.io](https://mpv.io/installation/) — daj mpv.exe v isto mapo
+            - **Windows:** Place [mpv.exe](https://mpv.io/installation/) next to Radiola.exe
             - **macOS:** `brew install mpv`
 
-            ---
-            Celoten changelog: [CHANGELOG.md](CHANGELOG.md)
+            ### 🆓 Radio Browser
+            Built-in station search — no registration, ~35,000 stations.
           files: release-files/**
+          fail_on_unmatched_files: false
           draft: false
           prerelease: false
