@@ -1,4 +1,4 @@
-name: Build Radiola
+name: Build RadioKlic
 
 on:
   push:
@@ -30,25 +30,48 @@ jobs:
         run: pip install pyinstaller pillow requests
 
       - name: Build EXE
-        run: pyinstaller radiola.spec --clean --noconfirm
+        run: pyinstaller radioklic.spec --clean --noconfirm
+
+      - name: Bundle mpv player
+        shell: pwsh
+        run: |
+          Write-Host "Prenašam mpv za Windows..."
+          $url = "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20240901/mpv-x86_64-20240901-git-a39c369.zip"
+          try {
+            Invoke-WebRequest -Uri $url -OutFile mpv.zip -TimeoutSec 60 -UseBasicParsing
+            Expand-Archive -Path mpv.zip -DestinationPath mpv_tmp -Force
+            $exe = Get-ChildItem -Path mpv_tmp -Filter "mpv.exe" -Recurse | Select-Object -First 1
+            if ($exe) {
+              Copy-Item $exe.FullName "dist\RadioKlic\mpv.exe"
+              Write-Host "OK: mpv.exe dodan ($([math]::Round((Get-Item 'dist\RadioKlic\mpv.exe').Length/1MB,1)) MB)"
+            } else {
+              Write-Host "OPOZORILO: mpv.exe ni bil najden — preskočim"
+            }
+          } catch {
+            Write-Host "OPOZORILO: mpv prenos ni uspel — $_"
+            Write-Host "Uporabnik bo moral sam namestiti mpv."
+          }
 
       - name: Prepare dist
         shell: cmd
         run: |
-          mkdir dist\Radiola\ICONS
-          echo Place station icons here > dist\Radiola\ICONS\readme.txt
+          mkdir dist\RadioKlic\ICONS
+          echo Place station icons (.png/.jpg) here > dist\RadioKlic\ICONSeadme.txt
+          echo mpv player is included. No separate installation needed. > dist\RadioKlic\player_bundled.txt
 
       - name: Package ZIP
         shell: pwsh
         run: |
           $ver = "${{ github.ref_name }}" -replace "^v", ""
           if (-not $ver) { $ver = "dev" }
-          Compress-Archive -Path dist\Radiola\* -DestinationPath "Radiola-$ver-Windows.zip"
+          Compress-Archive -Path dist\RadioKlic\* -DestinationPath "RadioKlic-$ver-Windows.zip"
+          $size = [math]::Round((Get-Item "RadioKlic-$ver-Windows.zip").Length/1MB,1)
+          Write-Host "ZIP ustvarjen: RadioKlic-$ver-Windows.zip ($size MB)"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Radiola-Windows
-          path: Radiola-*-Windows.zip
+          name: RadioKlic-Windows
+          path: RadioKlic-*-Windows.zip
           retention-days: 30
 
   # ─────────────────────────────────────────────────
@@ -83,24 +106,24 @@ jobs:
           export DISPLAY=:99
           Xvfb :99 -screen 0 1024x768x24 &
           sleep 2
-          pyinstaller radiola.spec --clean --noconfirm
+          pyinstaller radioklic.spec --clean --noconfirm
 
       - name: Prepare dist
         run: |
-          mkdir -p dist/Radiola/ICONS
-          echo "Place station icons here" > dist/Radiola/ICONS/readme.txt
+          mkdir -p dist/RadioKlic/ICONS
+          echo "Place station icons here" > dist/RadioKlic/ICONS/readme.txt
 
       - name: Package tar.gz
         run: |
           VER="${{ github.ref_name }}"
           VER="${VER#v}"
           if [ -z "$VER" ]; then VER="dev"; fi
-          tar -czf "Radiola-${VER}-Linux.tar.gz" -C dist Radiola
+          tar -czf "RadioKlic-${VER}-Linux.tar.gz" -C dist RadioKlic
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Radiola-Linux
-          path: Radiola-*-Linux.tar.gz
+          name: RadioKlic-Linux
+          path: RadioKlic-*-Linux.tar.gz
           retention-days: 30
 
   # ─────────────────────────────────────────────────
@@ -119,24 +142,24 @@ jobs:
         run: pip install pyinstaller pillow requests
 
       - name: Build macOS app
-        run: pyinstaller radiola.spec --clean --noconfirm
+        run: pyinstaller radioklic.spec --clean --noconfirm
 
       - name: Prepare dist
         run: |
-          mkdir -p dist/Radiola/ICONS
-          echo "Place station icons here" > dist/Radiola/ICONS/readme.txt
+          mkdir -p dist/RadioKlic/ICONS
+          echo "Place station icons here" > dist/RadioKlic/ICONS/readme.txt
 
       - name: Package tar.gz
         run: |
           VER="${{ github.ref_name }}"
           VER="${VER#v}"
           if [ -z "$VER" ]; then VER="dev"; fi
-          tar -czf "Radiola-${VER}-macOS.tar.gz" -C dist Radiola
+          tar -czf "RadioKlic-${VER}-macOS.tar.gz" -C dist RadioKlic
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Radiola-macOS
-          path: Radiola-*-macOS.tar.gz
+          name: RadioKlic-macOS
+          path: RadioKlic-*-macOS.tar.gz
           retention-days: 30
 
   # ─────────────────────────────────────────────────
@@ -164,22 +187,22 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Radiola ${{ github.ref_name }}"
+          name: "RadioKlic ${{ github.ref_name }}"
           body: |
-            ## Radiola ${{ github.ref_name }}
+            ## RadioKlic ${{ github.ref_name }}
 
             ### 📦 Downloads
 
             | Platform | File | Notes |
             |---|---|---|
-            | 🪟 Windows | `Radiola-*-Windows.zip` | Extract and run Radiola.exe |
-            | 🐧 Linux | `Radiola-*-Linux.tar.gz` | `tar -xzf` then `./Radiola` |
-            | 🍎 macOS | `Radiola-*-macOS.tar.gz` | Extract and run |
+            | 🪟 Windows | `RadioKlic-*-Windows.zip` | Extract and run RadioKlic.exe |
+            | 🐧 Linux | `RadioKlic-*-Linux.tar.gz` | `tar -xzf` then `./RadioKlic` |
+            | 🍎 macOS | `RadioKlic-*-macOS.tar.gz` | Extract and run |
 
             ### ⚠️ Media player required
-            Radiola needs **mpv** for audio playback:
+            RadioKlic needs **mpv** for audio playback:
             - **Linux:** `sudo apt install mpv`
-            - **Windows:** Place [mpv.exe](https://mpv.io/installation/) next to Radiola.exe
+            - **Windows:** Place [mpv.exe](https://mpv.io/installation/) next to RadioKlic.exe
             - **macOS:** `brew install mpv`
 
             ### 🆓 Radio Browser
