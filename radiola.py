@@ -1,13 +1,13 @@
 """
-Radiola – Internet Radio Player with Auto Volume
+RadioKlic – Internet Radio Player with Auto Volume
 =================================================
 Cross-platform: Linux & Windows
-https://github.com/yourusername/radiola
+https://github.com/yourusername/radioklic
 
 Requirements:
     Linux:   pip install requests pillow  |  sudo apt install mpv
     Windows: pip install requests pillow pycaw comtypes
-             + mpv.exe in same folder as radiola.py
+             + mpv.exe in same folder as radioklic.py
 """
 
 import platform, threading, subprocess, time, os, json, base64, io, shutil
@@ -26,7 +26,7 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 
 OS       = platform.system()
 VERSION  = "1.2.0"
-APP_NAME = "Radiola"
+APP_NAME = "RadioKlic"
 
 PYCAW_OK = False
 if OS == "Windows":
@@ -41,7 +41,7 @@ if OS == "Windows":
 BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 POSTAJE_FILE  = os.path.join(BASE_DIR, "stations.json")
 SETTINGS_FILE = os.path.join(BASE_DIR, "settings.json")
-ICON_FILE     = os.path.join(BASE_DIR, "radiola_icon.png")
+ICON_FILE     = os.path.join(BASE_DIR, "radioklic_icon.png")
 
 POSTAJE_PRIVZETE = [
     {"ime":"Val 202",         "url":"http://mp3.rtvslo.si:8000/val202","ikona":"","kw":""},
@@ -86,7 +86,7 @@ S = {
     m_1row="1 vrsta ikon (8)", m_2rows="2 vrsti ikon (16)",
     m_volume="Glasnost in dvig...", m_keyword="Ključna beseda...",
     m_si="🇸🇮  Slovenščina", m_en="🇬🇧  English",
-    about_title="O Radiola",
+    about_title="O RadioKlic",
     station_kw="Ključna beseda postaje  (prazno = globalna)",
     no_player="⚠  mpv ni nameščen!",
     player_lbl="▶  predvajalnik: ",
@@ -129,7 +129,7 @@ S = {
         "Internetni radijski predvajalnik z avtomatskim\n"
         "dvigom glasnosti pri govoru.\n\n"
         "Licenca: MIT\n"
-        "https://github.com/yourusername/radiola\n\n"
+        "https://github.com/yourusername/radioklic\n\n"
         "Predvajalnik: mpv / ffplay / vlc\n"
         "Glasnost: pactl (Linux) · pycaw (Windows)\n\n"
         "Ikone: Google Favicon API + ICY metadata\n"
@@ -195,7 +195,7 @@ S = {
         "Internet radio player with automatic\n"
         "volume boost during speech.\n\n"
         "License: MIT\n"
-        "https://github.com/yourusername/radiola\n\n"
+        "https://github.com/yourusername/radioklic\n\n"
         "Player: mpv / ffplay / vlc\n"
         "Volume: pactl (Linux) · pycaw (Windows)\n\n"
         "Icons: Google Favicon API + ICY metadata\n"
@@ -446,21 +446,47 @@ class PredvajalnikAvdia:
         if not self._player: return "ni najden"
         return os.path.basename(self._player).replace(".exe","")
 
-    def _ukaz(self, url):
-        p = self.ime.lower()
-        if "mpv"    in p: return [self._player,"--no-video","--really-quiet","--cache=yes","--cache-secs=5",url]
-        elif "ffplay" in p: return [self._player,"-nodisp","-loglevel","quiet","-i",url]
-        else:               return [self._player,"--intf","dummy","--quiet",url]
+    def _ipc_pot_nova(self):
+        """Vrne unikatno pot za mpv IPC pipe/socket."""
+        import random
+        n = random.randint(10000,99999)
+        if OS == "Windows":
+            return rf"\\.\pipe\radioklic_{n}"
+        return f"/tmp/radioklic_{n}.sock"
 
-    def predvajaj(self, url):
+    def _ukaz(self, url, ipc_pot=None):
+        p = self.ime.lower()
+        if "mpv" in p:
+            cmd = [self._player,
+                   "--no-video","--really-quiet",
+                   "--cache=yes","--cache-secs=5"]
+            if ipc_pot:
+                cmd.append(f"--input-ipc-server={ipc_pot}")
+            cmd.append(url)
+            return cmd
+        elif "ffplay" in p:
+            return [self._player,"-nodisp","-loglevel","quiet","-i",url]
+        else:
+            return [self._player,"--intf","dummy","--quiet",url]
+
+    def predvajaj(self, url, gl_obj=None):
         self.ustavi()
         if not self._player: return False
+        # Ustvari IPC pot za glasnost (samo mpv)
+        ipc = None
+        if "mpv" in self.ime.lower():
+            ipc = self._ipc_pot_nova()
+            self._ipc_pot = ipc
         with self._lock:
             try:
                 self._proc = subprocess.Popen(
-                    self._ukaz(url),
+                    self._ukaz(url, ipc),
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                     start_new_session=True)
+                # Obvesti Glasnost objekt o IPC poti
+                if gl_obj and ipc:
+                    time.sleep(0.5)  # počakaj da mpv odpre pipe
+                    gl_obj.nastavi_mpv_sock(ipc)
                 return True
             except Exception as e:
                 print(f"Player error: {e}"); self._proc=None; return False
@@ -485,35 +511,121 @@ class PredvajalnikAvdia:
 # ── Volume ────────────────────────────────────────────────────────────────────
 
 class Glasnost:
+    """
+    Glasnost nadzoruje glasnost predvajalnika.
+    Windows: mpv IPC socket → direktna glasnost procesa (ne sistemska)
+             fallback: pycaw (sistemska glasnost)
+    Linux:   pactl (sistemska glasnost)
+    macOS:   osascript
+    """
+    def __init__(self):
+        self._mpv_sock   = None   # pot do IPC socket/pipe
+        self._mpv_vol    = 0.6    # zadnja znana vrednost (0.0-1.0)
+        self._use_ipc    = False  # ali je mpv IPC na voljo
+
+    def nastavi_mpv_sock(self, sock_pot):
+        """Pokliče PredvajalnikAvdia ko mpv zažene — nastavi IPC pot."""
+        self._mpv_sock = sock_pot
+        self._use_ipc  = bool(sock_pot)
+
     def get(self):
-        try: return self._wg() if OS=="Windows" else self._lg()
-        except Exception: return 0.5
-    def set(self, n):
-        n = max(0.0,min(1.0,n))
         try:
-            if OS=="Windows": self._ws(n)
-            else: self._ls(n)
-        except Exception: pass
+            if self._use_ipc:
+                return self._mpv_vol  # vrnemo zadnjo nastavljeno vrednost
+            if OS == "Darwin":
+                return self._macos_get()
+            if OS == "Windows":
+                return self._wg()
+            return self._lg()
+        except Exception:
+            return self._mpv_vol
+
+    def set(self, n):
+        n = max(0.0, min(1.0, n))
+        self._mpv_vol = n
+        try:
+            if self._use_ipc:
+                self._mpv_set_vol(n); return
+            if OS == "Darwin":
+                self._macos_set(n); return
+            if OS == "Windows":
+                self._ws(n); return
+            self._ls(n)
+        except Exception:
+            pass
+
     def gladko(self, od, do, stop=None):
-        for i in range(1,PREHOD_KORAKI+1):
+        for i in range(1, PREHOD_KORAKI+1):
             if stop and stop.is_set(): break
-            self.set(od+(do-od)*(i/PREHOD_KORAKI)); time.sleep(PREHOD_ZAMIK)
-    def _wg(self):
-        if not PYCAW_OK: return 0.5
-        d=AudioUtilities.GetSpeakers(); i=d.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None)
-        return cast(i,POINTER(IAudioEndpointVolume)).GetMasterVolumeLevelScalar()
-    def _ws(self,n):
-        if not PYCAW_OK: return
-        d=AudioUtilities.GetSpeakers(); i=d.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None)
-        cast(i,POINTER(IAudioEndpointVolume)).SetMasterVolumeLevelScalar(n,None)
+            self.set(od + (do-od)*(i/PREHOD_KORAKI))
+            time.sleep(PREHOD_ZAMIK)
+
+    # ── mpv IPC (Windows pipe, Linux/Mac socket) ──────────────────────────────
+    def _mpv_set_vol(self, n):
+        """Nastavi glasnost direktno mpv procesu prek IPC."""
+        vol_int = int(n * 100)
+        cmd = '{"command": ["set_property", "volume", ' + str(vol_int) + ']}\n'
+        if OS == "Windows":
+            self._win_pipe_send(cmd)
+        else:
+            self._unix_sock_send(cmd)
+
+    def _win_pipe_send(self, cmd):
+        import ctypes
+        GENERIC_WRITE = 0x40000000
+        OPEN_EXISTING = 3
+        h = ctypes.windll.kernel32.CreateFileW(
+            self._mpv_sock, GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
+        if h == ctypes.c_void_p(-1).value:
+            raise OSError("Pipe ni dostopen")
+        try:
+            buf = cmd.encode("utf-8")
+            written = ctypes.c_ulong(0)
+            ctypes.windll.kernel32.WriteFile(
+                h, buf, len(buf), ctypes.byref(written), None)
+        finally:
+            ctypes.windll.kernel32.CloseHandle(h)
+
+    def _unix_sock_send(self, cmd):
+        import socket as _sock
+        s = _sock.socket(_sock.AF_UNIX, _sock.SOCK_STREAM)
+        s.connect(self._mpv_sock)
+        s.sendall(cmd.encode()); s.close()
+
+    # ── Linux pactl ───────────────────────────────────────────────────────────
     def _lg(self):
-        o=subprocess.check_output(["pactl","get-sink-volume","@DEFAULT_SINK@"],
-                                   stderr=subprocess.DEVNULL).decode()
+        o = subprocess.check_output(
+            ["pactl","get-sink-volume","@DEFAULT_SINK@"],
+            stderr=subprocess.DEVNULL).decode()
         for t in o.split():
             if t.endswith("%"): return int(t[:-1])/100
         return 0.5
-    def _ls(self,n):
-        subprocess.run(["pactl","set-sink-volume","@DEFAULT_SINK@",f"{int(n*100)}%"],
+
+    def _ls(self, n):
+        subprocess.run(["pactl","set-sink-volume","@DEFAULT_SINK@",
+                        f"{int(n*100)}%"], stderr=subprocess.DEVNULL)
+
+    # ── Windows pycaw (fallback) ──────────────────────────────────────────────
+    def _wg(self):
+        if not PYCAW_OK: return self._mpv_vol
+        d = AudioUtilities.GetSpeakers()
+        i = d.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        return cast(i, POINTER(IAudioEndpointVolume)).GetMasterVolumeLevelScalar()
+
+    def _ws(self, n):
+        if not PYCAW_OK: return
+        d = AudioUtilities.GetSpeakers()
+        i = d.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        cast(i, POINTER(IAudioEndpointVolume)).SetMasterVolumeLevelScalar(n, None)
+
+    # ── macOS osascript ───────────────────────────────────────────────────────
+    def _macos_get(self):
+        o = subprocess.check_output(
+            ["osascript","-e","output volume of (get volume settings)"],
+            stderr=subprocess.DEVNULL).decode().strip()
+        return int(o)/100
+    def _macos_set(self, n):
+        subprocess.run(["osascript","-e",f"set volume output volume {int(n*100)}"],
                        stderr=subprocess.DEVNULL)
 
 # ── Metadata ──────────────────────────────────────────────────────────────────
@@ -712,7 +824,7 @@ class IzbiraIkone(tk.Toplevel):
         self._build()
         self.geometry("660x520")
         self.grab_set()
-        # Odpri v zadnji mapi → BASE_DIR (mapa radiola.py) → domača mapa
+        # Odpri v zadnji mapi → BASE_DIR (mapa radioklic.py) → domača mapa
         if IzbiraIkone._zadnja_mapa and os.path.isdir(IzbiraIkone._zadnja_mapa):
             zacetna = IzbiraIkone._zadnja_mapa
         else:
@@ -1013,7 +1125,7 @@ RAPIDAPI_HOST = "50k-radio-stations.p.rapidapi.com"
 RB_SERVERS = ["de1.api.radio-browser.info",
                "nl1.api.radio-browser.info",
                "at1.api.radio-browser.info"]
-RB_UA      = f"Radiola/{VERSION}"
+RB_UA      = f"RadioKlic/{VERSION}"
 
 
 class RadioIskanje(tk.Toplevel):
@@ -2044,13 +2156,13 @@ class UrejevalnikPostaj(tk.Toplevel):
         if not pot: return
         with open(pot,"w",encoding="utf-8") as f:
             if z_ikonami:
-                f.write("# Radiola – izvoz postaj Z IKONAMI\n")
+                f.write("# RadioKlic – izvoz postaj Z IKONAMI\n")
                 f.write("# Format:  Ime = URL = data:image/png;base64,...\n\n")
                 for p in self.postaje:
                     line=f"{p['ime']} = {p.get('url','')} = {p.get('ikona','')}\n"
                     f.write(line)
             else:
-                f.write("# Radiola – izvoz postaj (brez ikon)\n")
+                f.write("# RadioKlic – izvoz postaj (brez ikon)\n")
                 f.write("# ──────────────────────────────────────────────────────────\n")
                 f.write("# Format:  Ime postaje = Stream URL\n")
                 f.write("# Uvoz:    Uredi postaje → Uvozi .txt\n")
@@ -2202,8 +2314,8 @@ class App(tk.Tk):
     def _set_lang(self,l):
         self.lang=l; self.nas["jezik"]=l; shrani_settings(self.nas)
         messagebox.showinfo(APP_NAME,
-            "Jezik spremenjen. Znova zaženi Radiola.\n"
-            "Language changed. Please restart Radiola.")
+            "Jezik spremenjen. Znova zaženi RadioKlic.\n"
+            "Language changed. Please restart RadioKlic.")
 
     def _on_rows(self):
         self.nas["icon_rows"]=self.var_rows.get()
@@ -2657,8 +2769,8 @@ class App(tk.Tk):
         if not self.player.na_voljo:
             messagebox.showerror(APP_NAME,
                 "mpv ni nameščen!\nLinux: sudo apt install mpv\n"
-                "Windows: mpv.exe v isto mapo kot radiola.py"); return
-        threading.Thread(target=self.player.predvajaj,args=(url,),daemon=True).start()
+                "Windows: mpv.exe v isto mapo kot radioklic.py"); return
+        threading.Thread(target=self.player.predvajaj,args=(url,self.gl_obj),daemon=True).start()
         self.meta=MetadataBralnik(url,self._on_meta); self.meta.start()
         self.predvaja=True
         self._predvajal_pred_spanjem=True
@@ -2795,8 +2907,7 @@ class App(tk.Tk):
         """Drsnik glasnosti v glavnem oknu."""
         v = float(val)/100
         self.nas["glasnost"] = v
-        try: self.gl_obj.set(v)
-        except Exception: pass
+        self.gl_obj.set(v)
         self.var_gl_lbl.set(f"{int(float(val))}%")
         shrani_settings(self.nas)
 
